@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION=0.1.0
+VERSION=0.4.3
 COMMIT=$(git rev-parse --short HEAD)
 
 echo "最近版本；$VERSION / $COMMIT"

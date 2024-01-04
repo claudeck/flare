@@ -113,7 +113,7 @@ func renderHelp(c *gin.Context) {
 			"ApplicationsURI": FlareState.RegularPages.Applications.Path,
 			"SettingsURI":     FlareState.RegularPages.Settings.Path,
 			"Applications":    GenerateHelpTemplate(),
-			"SearchKeyword":   template.HTML(""),
+			"SearchKeyword":   template.HTML(" "),
 			"HasKeyword":      false,
 
 			// SearchProvider          string // 默认的搜索引擎
@@ -226,6 +226,7 @@ func getGreeting(greeting string) string {
 
 func pageBookmark(c *gin.Context) {
 	options := FlareData.GetAllSettingsOptions()
+	FlareState.ParseRequestURL(c.Request)
 
 	c.HTML(
 		http.StatusOK,
@@ -242,18 +243,22 @@ func pageBookmark(c *gin.Context) {
 
 			"BookmarksURI":    FlareState.RegularPages.Bookmarks.Path,
 			"ApplicationsURI": FlareState.RegularPages.Applications.Path,
+			"SettingsURI":     FlareState.RegularPages.Settings.Path,
 
 			"Bookmarks": GenerateBookmarkTemplate(""),
 
 			"OptionTitle":              options.Title,
 			"OptionOpenBookmarkNewTab": options.OpenBookmarkNewTab,
 			"OptionShowBookmarks":      options.ShowBookmarks,
+			"OptionHideSettingsButton": options.HideSettingsButton,
+			"OptionHideHelpButton":     options.HideHelpButton,
 		},
 	)
 }
 
 func pageApplication(c *gin.Context) {
 	options := FlareData.GetAllSettingsOptions()
+	FlareState.ParseRequestURL(c.Request)
 
 	c.HTML(
 		http.StatusOK,
@@ -264,6 +269,7 @@ func pageApplication(c *gin.Context) {
 
 			"BookmarksURI":    FlareState.RegularPages.Bookmarks.Path,
 			"ApplicationsURI": FlareState.RegularPages.Applications.Path,
+			"SettingsURI":     FlareState.RegularPages.Settings.Path,
 			"Applications":    GenerateApplicationsTemplate(""),
 
 			"PageName":       "应用",
@@ -272,18 +278,21 @@ func pageApplication(c *gin.Context) {
 
 			// "SettingPages": FlareState.SettingPages,
 
-			"OptionTitle":         options.Title,
-			"OptionOpenAppNewTab": options.OpenAppNewTab,
-			"OptionShowApps":      options.ShowApps,
+			"OptionTitle":              options.Title,
+			"OptionOpenAppNewTab":      options.OpenAppNewTab,
+			"OptionShowApps":           options.ShowApps,
+			"OptionHideSettingsButton": options.HideSettingsButton,
+			"OptionHideHelpButton":     options.HideHelpButton,
 		},
 	)
 }
 
 func render(c *gin.Context, filter string) {
 	options := FlareData.GetAllSettingsOptions()
+	FlareState.ParseRequestURL(c.Request)
 
 	hasKeyword := false
-	searchKeyword := ""
+	searchKeyword := " "
 	if filter != "" {
 		searchKeyword = "搜索结果: " + filter
 		hasKeyword = true

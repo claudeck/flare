@@ -1,7 +1,6 @@
 package home
 
 import (
-	"encoding/base64"
 	"html/template"
 	"strings"
 
@@ -16,18 +15,24 @@ func GenerateBookmarkTemplate(filter string) template.HTML {
 	bookmarksData := FlareData.LoadNormalBookmarks()
 	tpl := ""
 
+	var parseBookmarks []FlareModel.Bookmark
+	for _, bookmark := range bookmarksData.Items {
+		bookmark.URL = FlareState.ParseDynamicUrl(bookmark.URL)
+		parseBookmarks = append(parseBookmarks, bookmark)
+	}
+
 	var bookmarks []FlareModel.Bookmark
 
 	if filter != "" {
 		filterLower := strings.ToLower(filter)
 
-		for _, bookmark := range bookmarksData.Items {
+		for _, bookmark := range parseBookmarks {
 			if strings.Contains(strings.ToLower(bookmark.Name), filterLower) || strings.Contains(strings.ToLower(bookmark.URL), filterLower) {
 				bookmarks = append(bookmarks, bookmark)
 			}
 		}
 	} else {
-		bookmarks = bookmarksData.Items
+		bookmarks = parseBookmarks
 	}
 
 	if len(bookmarksData.Categories) > 0 {
@@ -36,7 +41,7 @@ func GenerateBookmarkTemplate(filter string) template.HTML {
 			tpl += renderBookmarksWithCategories(&bookmarks, &category, &defaultCategory, options.OpenBookmarkNewTab, options.EnableEncryptedLink, options.IconMode)
 		}
 	} else {
-		tpl += `<div class="bookmark-group-container pull-left"><ul class="bookmark-list">` + renderBookmarksWithoutCategories(&bookmarks, options.OpenBookmarkNewTab, options.EnableEncryptedLink, options.IconMode) + `</ul></div>`
+		tpl += renderBookmarksWithoutCategories(&bookmarks, options.OpenBookmarkNewTab, options.EnableEncryptedLink, options.IconMode)
 	}
 
 	return template.HTML(tpl)
@@ -50,10 +55,10 @@ func renderBookmarksWithoutCategories(bookmarks *[]FlareModel.Bookmark, OpenBook
 		// 则使用服务端 Location 方式打开链接
 		templateURL := ""
 		if strings.HasPrefix(bookmark.URL, "chrome-extension://") {
-			templateURL = "/redir/" + base64.StdEncoding.EncodeToString([]byte(bookmark.URL))
+			templateURL = "/redir/url?go=" + FlareData.Base64EncodeUrl(bookmark.URL)
 		} else {
 			if EnableEncryptedLink {
-				templateURL = "/redir/" + FlareData.Base64Encode(bookmark.URL)
+				templateURL = "/redir/url?go=" + FlareData.Base64EncodeUrl(bookmark.URL)
 			} else {
 				templateURL = bookmark.URL
 			}
@@ -91,10 +96,10 @@ func renderBookmarksWithCategories(bookmarks *[]FlareModel.Bookmark, category *F
 		// 则使用服务端 Location 方式打开链接
 		templateURL := ""
 		if strings.HasPrefix(bookmark.URL, "chrome-extension://") {
-			templateURL = "/redir/" + base64.StdEncoding.EncodeToString([]byte(bookmark.URL))
+			templateURL = "/redir/url?go=" + FlareData.Base64EncodeUrl(bookmark.URL)
 		} else {
 			if EnableEncryptedLink {
-				templateURL = "/redir/" + FlareData.Base64Encode(bookmark.URL)
+				templateURL = "/redir/url?go=" + FlareData.Base64EncodeUrl(bookmark.URL)
 			} else {
 				templateURL = bookmark.URL
 			}

@@ -13,19 +13,25 @@ import (
 func GenerateApplicationsTemplate(filter string) template.HTML {
 	options := FlareData.GetAllSettingsOptions()
 	appsData := FlareData.LoadFavoriteBookmarks()
+	tpl := ""
+
+	var parseApps []FlareModel.Bookmark
+	for _, app := range appsData.Items {
+		app.URL = FlareState.ParseDynamicUrl(app.URL)
+		parseApps = append(parseApps, app)
+	}
 
 	var apps []FlareModel.Bookmark
-	tpl := ""
 
 	if filter != "" {
 		filterLower := strings.ToLower(filter)
-		for _, bookmark := range appsData.Items {
+		for _, bookmark := range parseApps {
 			if strings.Contains(strings.ToLower(bookmark.Name), filterLower) || strings.Contains(strings.ToLower(bookmark.URL), filterLower) || strings.Contains(strings.ToLower(bookmark.Desc), filterLower) {
 				apps = append(apps, bookmark)
 			}
 		}
 	} else {
-		apps = appsData.Items
+		apps = parseApps
 	}
 
 	for _, app := range apps {
@@ -41,10 +47,10 @@ func GenerateApplicationsTemplate(filter string) template.HTML {
 		// 则使用服务端 Location 方式打开链接
 		templateURL := ""
 		if strings.HasPrefix(app.URL, "chrome-extension://") {
-			templateURL = "/redir/" + FlareData.Base64Encode(app.URL)
+			templateURL = "/redir/url?go=" + FlareData.Base64EncodeUrl(app.URL)
 		} else {
 			if options.EnableEncryptedLink {
-				templateURL = "/redir/" + FlareData.Base64Encode(app.URL)
+				templateURL = "/redir/url?go=" + FlareData.Base64EncodeUrl(app.URL)
 			} else {
 				templateURL = app.URL
 			}
